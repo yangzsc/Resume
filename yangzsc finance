@@ -1,0 +1,109 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.*;
+//import java.util.Comparator;
+
+enum Rating{
+    A, B, C
+}
+enum AssetCategoty{
+    a, b, c
+}
+
+public class RepoMatching {
+    private List<Security> Securities;
+    private Repo repo;
+    private HashMap<Rating, HashMap<AssetCategoty, ArrayList<Security>>> SecurityCollections;
+    public RepoMatching() {
+        this.Securities = new ArrayList<>();
+        this.repo = new Repo();
+        this.SecurityCollections = new HashMap<>();
+    }
+    public static Comparator<Security> SecurityComparator = new Comparator<Security>() {
+
+        public int compare(Security s1, Security s2) {
+            double v1 = s1.value;
+            double v2 = s2.value;
+
+            //descending order
+            return (int)(v1 - v2);
+        }
+    };
+    public void ParseInput(String FileName1, String FileName2) throws FileNotFoundException {
+        //Parse input securities
+        Scanner scanner1 = new Scanner(new File(FileName1));
+        while (scanner1.hasNextLine()) {
+            String line = scanner1.nextLine();
+            // process the line
+            String[] result = line.split(" ");
+            Security security = new Security(
+                    result[0],
+                    Rating.valueOf(result[1].toUpperCase()),
+                    AssetCategoty.valueOf(result[2]),
+                    Double.parseDouble(result[3])
+            );
+            Securities.add(security);
+        }
+    }
+    public void StoreToMap(){
+        for (Security s : Securities) {
+            if (SecurityCollections.containsKey(s.rating) && !SecurityCollections.get(s.rating).containsKey(s.assetCategoty)) {
+                ArrayList<Security> tmp_ArrayList = new ArrayList<>();
+                tmp_ArrayList.add(s);
+                SecurityCollections.get(s.rating).put(s.assetCategoty, tmp_ArrayList);
+
+                HashMap<AssetCategoty, ArrayList<Security>> tmp_inner = new HashMap<>();
+                tmp_inner.put(s.assetCategoty, tmp_ArrayList);
+                SecurityCollections.put(s.rating, tmp_inner);
+            } else if (!SecurityCollections.containsKey(s.rating)){
+
+                ArrayList<Security> tmp_ArrayList = new ArrayList<>();
+                tmp_ArrayList.add(s);
+                HashMap<AssetCategoty, ArrayList<Security>> tmp_inner = new HashMap<>();
+                tmp_inner.put(s.assetCategoty, tmp_ArrayList);
+                SecurityCollections.put(s.rating, tmp_inner);
+            } else {
+                SecurityCollections.get(s.rating).get(s.assetCategoty).add(s);
+            }
+        }
+    }
+//    public void PrintCollection(){
+//        for(HashMap.Entry<Rating, HashMap<AssetCategoty, ArrayList<Security>>> entry : SecurityCollections.entrySet()) {
+//            HashMap<AssetCategoty, ArrayList<Security>> temp = entry.getValue();
+//            for(HashMap.Entry<AssetCategoty, ArrayList<Security>> innerEntry : temp.entrySet()) {
+//
+//            }
+//        }
+//    }
+
+    public static void main(String[] args) throws FileNotFoundException {
+
+        RepoMatching instance = new RepoMatching();
+        instance.ParseInput("/Users/shuchenzhao/Downloads/123.txt", "/Users/shuchenzhao/Downloads/123.txt");
+        instance.StoreToMap();
+        System.out.println("123");
+    }
+}
+
+class Security{
+    String Name;
+    public Rating rating;
+    public AssetCategoty assetCategoty;
+    public double value;
+    public Security(String n, Rating r, AssetCategoty a, double v){
+        this.Name = n;
+        this.rating = r;
+        this.assetCategoty = a;
+        this.value = v;
+    }
+
+}
+class Repo{
+    private double TargetSum;
+    private HashMap<String, Double> Constraints;
+    public Repo(){}
+    public Repo(double t, HashMap<String, Double> c) {
+        this.TargetSum = t;
+        this.Constraints = c;
+    }
+}
